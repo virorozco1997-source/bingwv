@@ -1,7 +1,15 @@
 <resources>
-    <color name="sage_green">#6B6B6B</color>
-    <color name="sage_green_dark">#4D4D4D</color>
-    <color name="sage_green_light">#9E9E9E</color>
+    <!-- Escala de grises (Android 11 o anterior). En Android 12+ lo pisa
+         values-v31 con los colores del sistema. -->
+    <color name="home_accent">#6B6B6B</color>
+    <color name="home_accent_dark">#4D4D4D</color>
+    <color name="home_accent_light">#9E9E9E</color>
+
+    <!-- Alias por si algún archivo viejo todavía usa el nombre anterior. -->
+    <color name="sage_green">@color/home_accent</color>
+    <color name="sage_green_dark">@color/home_accent_dark</color>
+    <color name="sage_green_light">@color/home_accent_light</color>
+
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="window_background">#FFFFFF</color>
