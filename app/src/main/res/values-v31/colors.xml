@@ -1,0 +1,8 @@
+<resources>
+    <!-- Android 12+: paleta dinámica del sistema (Material You / One UI). -->
+    <color name="home_accent">@android:color/system_accent1_600</color>
+    <color name="home_accent_dark">@android:color/system_accent1_700</color>
+    <color name="home_accent_light">@android:color/system_accent1_200</color>
+    <color name="home_surface">@android:color/system_neutral1_100</color>
+    <color name="home_text_secondary">@android:color/system_neutral2_600</color>
+</resources>
