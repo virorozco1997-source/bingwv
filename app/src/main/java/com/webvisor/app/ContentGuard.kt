@@ -63,6 +63,54 @@ object ContentGuard {
             }
         } catch (e: Exception) {
             Log.w(TAG, "No se pudo leer $ASSET_FILE, se usa la lista de respaldo", e)
+        package com.webvisor.app
+
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+
+/**
+ * Control de contenido para adultos (control parental), con dos capas:
+ *
+ *   1) BLOCKED_HOSTS: bloqueo directo de sitios para adultos conocidos.
+ *      La lista base vive en app/src/main/assets/blocked_domains.txt.
+ *   2) applySafeSearch(): fuerza el modo seguro/restringido en los
+ *      buscadores y en YouTube.
+ *
+ * Para un control más estricto y a nivel de red, lo ideal es combinarlo
+ * con un DNS familiar (ej. CleanBrowsing Family) en Ajustes → DNS privado.
+ */
+object ContentGuard {
+
+    private const val TAG = "ContentGuard"
+    private const val ASSET_FILE = "blocked_domains.txt"
+
+    /** Lista de respaldo por si el archivo de assets no se pudo leer. */
+    private val FALLBACK_HOSTS = setOf(
+        "pornhub.com", "xvideos.com", "xnxx.com", "xhamster.com",
+        "redtube.com", "youporn.com", "chaturbate.com", "livejasmin.com"
+    )
+
+    private var blockedHosts: Set<String> = FALLBACK_HOSTS
+    private var initialized = false
+
+    fun init(context: Context) {
+        if (initialized) return
+        initialized = true
+        try {
+            val hosts = context.assets.open(ASSET_FILE)
+                .bufferedReader()
+                .readLines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() && !it.startsWith("#") }
+                .map { it.lowercase() }
+                .toSet()
+
+            if (hosts.isNotEmpty()) {
+                blockedHosts = hosts
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo leer $ASSET_FILE, se usa la lista de respaldo", e)
         }
     }
 
@@ -89,7 +137,7 @@ object ContentGuard {
                 else uri.buildUpon().appendQueryParameter("safe", "strict").build()
             }
 
-            // Bing: adlt=strict.
+            // Bing: adlt=strict (web e imágenes).
             host.endsWith("bing.com") &&
                 (uri.path?.startsWith("/search") == true || uri.path?.startsWith("/images") == true) -> {
                 if (uri.getQueryParameter("adlt") == "strict") null
@@ -102,8 +150,7 @@ object ContentGuard {
                 else uri.buildUpon().appendQueryParameter("kp", "1").build()
             }
 
-            // Ecosia: safesearch=2 (estricto), tanto en /search como en
-            // /images, para que el filtro de imágenes esté siempre activo.
+            // Ecosia: safesearch=2 (estricto), en /search y /images.
             (host == "ecosia.org" || host.endsWith(".ecosia.org")) &&
                 (uri.path?.startsWith("/search") == true || uri.path?.startsWith("/images") == true) -> {
                 if (uri.getQueryParameter("safesearch") == "2") null
@@ -119,7 +166,7 @@ object ContentGuard {
             }
 
             // YouTube: redirigir al host "restrict" que Google ofrece para
-            // forzar el Modo Restringido a nivel de red/DNS.
+            // forzar el Modo Restringido.
             host == "youtube.com" || host == "www.youtube.com" || host == "m.youtube.com" -> {
                 uri.buildUpon().authority("restrict.youtube.com").build()
             }
@@ -129,13 +176,10 @@ object ContentGuard {
     }
 
     /**
-     * Detecta específicamente el "Modo IA" (AI Mode) de Google Search, sin
-     * importar la variante de URL que use (Google la fue cambiando):
-     *   - google.com/ai y google.com/aimode (accesos directos)
-     *   - google.com/search con el parámetro udm=50 o aep=11 (se activa
-     *     tocando el botón "Modo IA" desde una búsqueda común)
-     * Aplica a cualquier dominio de Google (google.com, google.com.ar,
-     * google.co.uk, etc.), con o sin "www.".
+     * Detecta el "Modo IA" (AI Mode) de Google Search, sin importar la
+     * variante de URL que use:
+     *   - google.com/ai y google.com/aimode
+     *   - google.com/search con udm=50 o aep=11
      */
     private val googleHostRegex = Regex("^(www\\.)?google\\.[a-z.]+$")
 
