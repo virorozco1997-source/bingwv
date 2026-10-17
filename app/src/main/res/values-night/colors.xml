@@ -1,7 +1,7 @@
 <resources>
-    <color name="sage_green">#9E9E9E</color>
-    <color name="sage_green_dark">#757575</color>
-    <color name="sage_green_light">#BDBDBD</color>
+    <color name="home_accent">#9E9E9E</color>
+    <color name="home_accent_dark">#757575</color>
+    <color name="home_accent_light">#BDBDBD</color>
     <color name="window_background">#121212</color>
 
     <color name="empty_state_background">@color/black</color>
